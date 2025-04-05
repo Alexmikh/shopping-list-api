@@ -1,0 +1,17 @@
+# IDE
+.idea/
+
+# Virtual environment
+.venv/
+*.pyc
+__pycache__/
+
+# SQLite
+*.db
+
+# OS/system
+.DS_Store
+
+# Python env
+.env
+.pyvenv.cfg
