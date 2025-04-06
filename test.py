@@ -3,7 +3,7 @@ import random
 import time
 from requests.auth import HTTPBasicAuth
 
-BASE_URL = "https://temnov.me/"
+BASE_URL = "http://localhost:8000/"
 
 users = [
     {"username": "alice", "password": "alice"},
