@@ -3,7 +3,7 @@ import random
 import time
 from requests.auth import HTTPBasicAuth
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://temnov.me/"
 
 users = [
     {"username": "alice", "password": "alice"},
@@ -19,6 +19,16 @@ for user in users:
     else:
         print(f"[WARN] Could not register {user['username']} ({r.status_code}): {r.text}")
 
+# Злоумышленные строки (инъекции)
+sql_injections = [
+    "' OR '1'='1",
+    "'; DROP TABLE items;--",
+    "'; SELECT * FROM users WHERE 'a'='a",
+    "' AND 1=1 --",
+    "\" OR \"\" = \"",
+    "' UNION SELECT null, null, null--",
+]
+
 # 2. Имитируем активность
 item_names = ["milk", "bread", "eggs", "apples", "cheese", "water", "coffee", "chocolate"]
 item_ids = []
@@ -27,19 +37,23 @@ for i in range(20):
     user = random.choice(users)
     auth = HTTPBasicAuth(user["username"], user["password"])
 
-    # случайно добавляем товар
-    item_name = random.choice(item_names) + f"-{random.randint(1, 100)}"
+    # 🔥 с шансом 20% добавим SQL-инъекцию вместо имени
+    if random.random() < 0.2:
+        item_name = random.choice(sql_injections)
+        print(f"[ATTACK] Trying SQL injection: {item_name}")
+    else:
+        item_name = random.choice(item_names) + f"-{random.randint(1, 100)}"
+
     r = requests.post(f"{BASE_URL}/items", params={"name": item_name}, auth=auth)
     if r.status_code == 200:
         print(f"[+] {user['username']} added item: {item_name}")
-        # парсим id из запроса списка
         list_r = requests.get(f"{BASE_URL}/items", auth=auth)
         if list_r.ok:
             for item in list_r.json():
                 if item["name"] == item_name:
                     item_ids.append((item["id"], user))
     else:
-        print(f"[!] Failed to add item: {r.text}")
+        print(f"[!] Failed to add item: {r.status_code} - {r.text}")
 
     # случайно удаляем или помечаем купленным
     if item_ids and random.random() < 0.7:
@@ -60,4 +74,4 @@ for i in range(20):
         if r.ok:
             print(f"[👁️] {user['username']} sees {len(r.json())} visible items")
 
-    time.sleep(0.2)  # чтобы не спамить слишком быстро
+    time.sleep(0.2)
