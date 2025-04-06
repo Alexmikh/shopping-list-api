@@ -8,7 +8,8 @@ WORKDIR /app
 COPY . /app
 
 # Устанавливаем зависимости
-RUN pip install --no-cache-dir fastapi uvicorn sqlalchemy passlib[bcrypt]
+RUN pip install --no-cache-dir fastapi uvicorn sqlalchemy
+RUN pip install --no-cache-dir passlib[bcrypt]
 
 # Открываем порт
 EXPOSE 8000
